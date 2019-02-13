@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>WebSocket</title>
+<style>
+*{margin:0;padding:0;list-style:none;}
+    div{
+        margin:10px;
+        width:300px;
+        height:500px;
+        box-sizing:border-box;
+        padding:5px;
+        border:1px solid;
+        overflow:auto;
+    }
+    li{
+        overflow: hidden;
+    }
+    h3{
+        box-sizing:border-box;
+        padding-left:20px;
+        max-width:250px;
+        overflow-wrap: break-word;
+    }
+    h5{
+        color:#aaa;
+        padding:0;
+    }
+    .text-padding{
+        padding-left:0;
+        padding-right:20px;
+        float:right;
+    }
+    .text-right{
+        text-align:right;
+        
+    }
+</style>
+</head>
+<body>
+    <div>
+        <ul>
+            <!-- <li>
+                <h5>小明</h5>
+                <h3>123</h3>
+            </li>
+            <li>
+                <h5 class="text-right">小强</h5>
+                <h3 class="text-right text-padding">321</h3>
+            </li> -->
+        </ul>
+    </div>
+    
+    <input type="text" name="content">
+    <button>发送</button>
+</body>
+<script>
+window.onload = function(){
+    var name = window.prompt('起个名字吧。。');
+    var mDiv = document.querySelector('div')
+    var btn = document.querySelector('button');
+    var text = document.querySelector('[name=content]');
+    var ul = document.querySelector('ul');
+    var socket = new WebSocket("ws://localhost:8080");
+    
+    var conText = {}
+    socket.onopen = function(){
+        console.log('链接成功！');
+        btn.onclick = function(){
+            if(text.value != ''){
+                sendMsg();
+            }
+            
+        };     
+        window.onkeydown = function(e){
+            var e = e || e.event;
+            if(e.keyCode == 13 && text.value != ''){
+                sendMsg();
+            }
+        }     
+    }; 
+    socket.onmessage = function(event){
+        console.log(event)
+        var data = JSON.parse(event.data);
+        if(data.name === name){
+            ul.innerHTML = ul.innerHTML + "<li><h5 class='text-right'>"+data.name+"</h5><h3 class='text-padding'>"+data.content+"</h3></li>";
+        }else{
+            ul.innerHTML = ul.innerHTML + "<li><h5>"+data.name+"</h5><h3>"+data.content+"</h3></li>";
+        }
+        mDiv.scrollTo(0,mDiv.scrollHeight);
+
+    }
+    
+    
+function sendMsg(){      
+            if(socket.bufferedAmount == 0){
+                conText.name = name;
+                conText.content = text.value;
+                socket.send(JSON.stringify(conText));
+                text.value = '';
+            }       
+        } 
+}
+
+ 
+</script>
+</html>
